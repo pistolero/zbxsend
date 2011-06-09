@@ -5,22 +5,16 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "zbxsender",
+    name = "zbxsend",
     version = "0.1",
     author = "Sergey Kirillov",
     author_email = "sergey.kirillov@gmail.com",
-    description = ("Module used to send merics to Zabbix."),
+    description = ("Module used to send metrics to Zabbix."),
     url='https://github.com/pistolero/zbxsend',
     license = "BSD",
-#    packages=['zbxstatsd'],
-    long_description=read('README.txt'),
-#    install_requires=['argparse'],
+    py_modules=['zbxsend'],
+    long_description=read('README.rst'),
     classifiers=[
         "License :: OSI Approved :: BSD License",
     ],
-#    entry_points={
-#        'console_scripts': [
-#              'zbx-statsd = zbxstatsd.server:main',
-#        ]
-#    }
 )
