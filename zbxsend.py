@@ -2,7 +2,10 @@ import struct
 import time
 import socket
 import logging
-import simplejson
+try:
+    import json
+except:
+    import simplejson as json
 
 
 class Metric(object):
@@ -20,8 +23,8 @@ class Metric(object):
 def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051):
     """Send set of metrics to Zabbix server.""" 
     
-    j = simplejson.dumps
-    # Zabbix has very fragile JSON parser, and we cannot use simplejson to dump whole packet
+    j = json.dumps
+    # Zabbix has very fragile JSON parser, and we cannot use json to dump whole packet
     metrics_data = []
     for m in metrics:
         clock = m.clock or time.time()
@@ -30,13 +33,13 @@ def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051):
                              '\t\t\t"key":%s,\n'
                              '\t\t\t"value":%s,\n'
                              '\t\t\t"clock":%s}') % (j(m.host), j(m.key), j(m.value), clock))
-    json = ('{\n'
+    json_data = ('{\n'
            '\t"request":"sender data",\n'
            '\t"data":[\n%s]\n'
            '}') % (',\n'.join(metrics_data))
     
-    data_len = struct.pack('<Q', len(json))
-    packet = 'ZBXD\1' + data_len + json        
+    data_len = struct.pack('<Q', len(json_data))
+    packet = 'ZBXD\1' + data_len + json_data
     try:
         zabbix = socket.socket()
         zabbix.connect((zabbix_host, zabbix_port))
@@ -49,7 +52,7 @@ def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051):
         resp_body = zabbix.recv(resp_body_len)
         zabbix.close()
 
-        resp = simplejson.loads(resp_body)
+        resp = json.loads(resp_body)
         logger.debug('Got response from Zabbix: %s' % resp)
         logger.info(resp.get('info'))
         if resp.get('response') != 'success':
