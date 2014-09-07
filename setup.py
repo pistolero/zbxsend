@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "zbxsend",
-    version = "0.1.4",
+    version = "0.1.5",
     author = "Sergey Kirillov",
     author_email = "sergey.kirillov@gmail.com",
     description = ("Module used to send metrics to Zabbix."),
