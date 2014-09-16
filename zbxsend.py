@@ -20,7 +20,7 @@ class Metric(object):
             return 'Metric(%r, %r, %r)' % (self.host, self.key, self.value)
         return 'Metric(%r, %r, %r, %r)' % (self.host, self.key, self.value, self.clock)
 
-def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051):
+def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051, timeout=15):
     """Send set of metrics to Zabbix server.""" 
     
     j = json.dumps
@@ -43,15 +43,17 @@ def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051):
     try:
         zabbix = socket.socket()
         zabbix.connect((zabbix_host, zabbix_port))
+        zabbix.settimeout(timeout)
+        # send metrics to zabbix
         zabbix.sendall(packet)
+        # get response header from zabbix
         resp_hdr = _recv_all(zabbix, 13)
         if not resp_hdr.startswith('ZBXD\1') or len(resp_hdr) != 13:
             logger.error('Wrong zabbix response')
             return False
         resp_body_len = struct.unpack('<Q', resp_hdr[5:])[0]
+        # get response body from zabbix
         resp_body = zabbix.recv(resp_body_len)
-        zabbix.close()
-
         resp = json.loads(resp_body)
         logger.debug('Got response from Zabbix: %s' % resp)
         logger.info(resp.get('info'))
@@ -59,9 +61,15 @@ def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051):
             logger.error('Got error from Zabbix: %s', resp)
             return False
         return True
-    except:
-        logger.exception('Error while sending data to Zabbix')
+    except socket.timeout, e:
+        logger.error("zabbix timeout: " + str(e))
         return False
+    except Exception, e:
+        logger.exception('Error while sending data to Zabbix: ' + str(e))
+        return False
+    finally:
+        zabbix.close()
+
 
 
 logger = logging.getLogger('zbxsender') 
