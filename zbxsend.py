@@ -61,10 +61,10 @@ def send_to_zabbix(metrics, zabbix_host='127.0.0.1', zabbix_port=10051, timeout=
             logger.error('Got error from Zabbix: %s', resp)
             return False
         return True
-    except socket.timeout, e:
+    except socket.timeout as e:
         logger.error("zabbix timeout: " + str(e))
         return False
-    except Exception, e:
+    except Exception as e:
         logger.exception('Error while sending data to Zabbix: ' + str(e))
         return False
     finally:
